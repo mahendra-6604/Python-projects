@@ -1,49 +1,103 @@
-# Simple Library Management System
+import time
 
-# List of available books
-books = ["The Alchemist", "Rich Dad Poor Dad", "The Power of Habit", "Atomic Habits", "Deep Work"]
+class BankAccount:
+    accounts = {}
+    transactions = {}
 
-def display_books():
-    print("\nAvailable Books:")
-    for book in books:
-        print(f" - {book}")
+    def __init__(self, account_number, account_holder, balance=0.0):
+        self.account_number = account_number
+        self.account_holder = account_holder
+        self.balance = balance
+        BankAccount.accounts[account_number] = self
+        BankAccount.transactions[account_number] = []
 
-def borrow_book(book_name):
-    if book_name in books:
-        books.remove(book_name)
-        print(f"\nYou have borrowed '{book_name}'. Enjoy reading!")
-    else:
-        print(f"\nSorry, '{book_name}' is not available right now.")
+    def log_transaction(self, transaction_type, amount):
+        BankAccount.transactions[self.account_number].append(
+            (transaction_type, amount, self.balance))
 
-def return_book(book_name):
-    books.append(book_name)
-    print(f"\nThanks for returning '{book_name}'.")
+    def deposit(self, amount):
+        if amount >= 500:
+            self.balance += amount
+            self.log_transaction("Deposit", amount)
+        else:
+            print("Minimum deposit is ₹500!")
 
-# Main function
+    def withdraw(self, amount):
+        if 0 < amount <= self.balance:
+            self.balance -= amount
+            self.log_transaction("Withdrawal", amount)
+        else:
+            print("Invalid withdrawal amount or insufficient funds.")
+
+    def check_balance(self):
+        print(f"Balance: ₹{self.balance}")
+
+    def show_transaction_history(self):
+        transactions = BankAccount.transactions.get(self.account_number, [])
+        if transactions:
+            for trans_type, amount, balance in transactions:
+                print(f"{trans_type}: ₹{amount} | Balance After: ₹{balance}")
+        else:
+            print("No transactions found.")
+
+class SavingsAccount(BankAccount):
+    MIN_BALANCE = 1000
+
+    def __init__(self, account_number, account_holder, balance=0.0):
+        super().__init__(account_number, account_holder, balance)
+        if balance < self.MIN_BALANCE:
+            print(f"Warning: Minimum balance for savings is ₹{self.MIN_BALANCE}")
+
+class CurrentAccount(BankAccount):
+    MIN_BALANCE = 5000
+
+    def __init__(self, account_number, account_holder, balance=0.0):
+        super().__init__(account_number, account_holder, balance)
+        if balance < self.MIN_BALANCE:
+            print(f"Warning: Minimum balance for current is ₹{self.MIN_BALANCE}")
+
+def find_account(account_number):
+    return BankAccount.accounts.get(account_number)
+
 def main():
     while True:
-        print("\nLibrary Menu:")
-        print("1. Display available books")
-        print("2. Borrow a book")
-        print("3. Return a book")
-        print("4. Exit")
+        print("\n1. Create Account\n2. Deposit\n3. Withdraw\n4. Check Balance\n5. View Transactions\n6. Exit")
+        choice = input("Choose an option: ").strip()
 
-        choice = input("\nEnter your choice (1-4): ")
+        if choice == "1":
+            acc_number = int(input("Enter account number: "))
+            name = input("Enter account holder's name: ")
+            acc_type = input("Enter account type (savings/current): ").strip().lower()
+            initial_deposit = float(input("Enter initial deposit: "))
+            if acc_type == "savings":
+                SavingsAccount(acc_number, name, initial_deposit)
+            elif acc_type == "current":
+                CurrentAccount(acc_number, name, initial_deposit)
+            else:
+                print("Invalid account type!")
 
-        if choice == '1':
-            display_books()
-        elif choice == '2':
-            book_name = input("Enter the name of the book you want to borrow: ")
-            borrow_book(book_name)
-        elif choice == '3':
-            book_name = input("Enter the name of the book you are returning: ")
-            return_book(book_name)
-        elif choice == '4':
-            print("\nThank you for using the Library Management System. Goodbye!")
+        elif choice in "2345":
+            acc_number = int(input("Enter account number: "))
+            account = find_account(acc_number)
+            if account:
+                if choice == "2":
+                    amount = float(input("Enter deposit amount: "))
+                    account.deposit(amount)
+                elif choice == "3":
+                    amount = float(input("Enter withdrawal amount: "))
+                    account.withdraw(amount)
+                elif choice == "4":
+                    account.check_balance()
+                elif choice == "5":
+                    account.show_transaction_history()
+            else:
+                print("Account not found!")
+
+        elif choice == "6":
+            print("Thanks for banking with us! 🏦✨")
             break
         else:
-            print("\nInvalid choice. Please choose a number between 1 and 4.")
+            print("Invalid choice!")
 
-# Run the program
 if __name__ == "__main__":
     main()
